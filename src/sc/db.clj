@@ -67,9 +67,12 @@
   (empty? (jdbc/query db [(str "SELECT * FROM `savedfollowings` WHERE `id` = '" id "';")])))
 
 (defn notSavedFollowers [id]
-  (empty? (jdbc/query db [(str "SELECT * FROM e404 JOIN savedfollowers where e404.id="
-                               id " or savedfollowers.id=" id "';")])))
+  (empty? (jdbc/query db [(str "SELECT * FROM `e404` JOIN `savedfollowers` where e404.id="
+                               id " or savedfollowers.id=" id ";")])))
 
-
+(str "SELECT * FROM `e404` JOIN `savedfollowers` where e404.id="
+                               3 " or savedfollowers.id=" 3 ";")
 
 (insert404 7)
+
+(notSavedFollowers 34567)
