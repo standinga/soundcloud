@@ -3,8 +3,6 @@
   (:require [clj-http.client :as client]
             [cheshire.core :refer :all]
             [clojure.string]
-            [net.cgrand.enlive-html :as html]
-            [clojure.java.io :as io]
             [clojure.edn :as edn]
             [sc.inits :refer :all]
             [clojure.java.jdbc :as jdbc]
@@ -39,18 +37,13 @@
    })
 
 
-(defn escapeCharsAux [string]
-  (->
-    string
-    (clojure.string/replace "\\" "")
-    (clojure.string/replace "'" "\\'")))
-
 (defn escapeChars [string]
   (if (> (count string) 40) "NULL"
     (if (= string nil) "NULL"
       (-> string
           (clojure.string/replace "\\" "")
           (clojure.string/replace "'" "\\'")))))
+
 
 (defn userVector [userData]
   (let [mappedUser (user_map userData)
@@ -211,12 +204,9 @@
           (println (get (userVector (get xs 0)) :userData)))))))
 
 
-
-
 (defn testQuery [xs]
   (doall (map findBadQuerry (map vec (partition-all 500 xs)))))
 
-;; (testQuery err)
 
 (defn insertToDB [userId]
   (let [userURL (str "http://api.soundcloud.com/users/" userId "/followers?client_id=af3e5e31e2e63ddad94791906ebddaec&page_size=200")
@@ -229,7 +219,7 @@
 
 ;; (time (doall (map dloadAndSave_Followers  (range 3 4))))
 
-(time (doall (pmap (fn [x] (doall (pmap dloadAndSave_Followers x))) (partition-all 20 (range 800 3000)))))
+(time (doall (pmap (fn [x] (doall (pmap dloadAndSave_Followers x))) (partition-all 20 (range 4600 4600)))))
 
 
 (defn get_user_id "returns user id from user name" [user_name]
