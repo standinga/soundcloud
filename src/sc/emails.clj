@@ -23,13 +23,13 @@
 
 (defn lessbadchar? [chara] (contains? lessbadchars chara))
 
-(def emailsfile (str path1 "emails.txt"))
+;; (def emailsfile (str path1 "emails.txt"))
 
-(defn get_user_id [user_name]
-  "takes name of user and returns user id"
-  (let [call (httpCall (str "http://api.soundcloud.com/users/" user_name "?client_id=" soundcloud_client_id))
-        parsed_call (parse-string (:body call))]
-    (get parsed_call "id")))
+;; (defn get_user_id [user_name]
+;;   "takes name of user and returns user id"
+;;   (let [call (httpCall (str "http://api.soundcloud.com/users/" user_name "?client_id=" soundcloud_client_id))
+;;         parsed_call (parse-string (:body call))]
+;;     (get parsed_call "id")))
 
 (defn hashfollowers [followers acc]
   (if (empty? followers) acc
@@ -55,13 +55,13 @@
     (if (nil? (hashedfollowers (first followers))) (recur hashedfollowers (rest followers))
       (recur (assoc hashedfollowers (first followers) true) (rest followers)))))
 
-(defn read-file [userid]
-  (read-string (slurp (str path userid ".edn"))))
+;; (defn read-file [userid]
+;;   (read-string (slurp (str path userid ".edn"))))
 
 
-(defn followers_descriptions [userid]
-  "gets descriptions of followers downloaded"
-  (filterv #(not= % "") (nonils (mapv (fn [x] ((user_map x) :description)) (read-file userid)))))
+;; (defn followers_descriptions [userid]
+;;   "gets descriptions of followers downloaded"
+;;   (filterv #(not= % "") (nonils (mapv (fn [x] ((user_map x) :description)) (read-file userid)))))
 
 
 (defn extract_mail [description]
@@ -112,28 +112,44 @@
       string)))
 
 
+
+
+
 (defn check_first_last [string]
   "checks address for and illegal characters and cleans beginning and end of address"
   (nobreaks (check_first_letter (check_last_letter string))))
 
 
-(defn extract_emails [userid]
-  "extract all available email addresses of user's followers"
-  (let [user_followers_desrciptions (followers_descriptions userid)
-        mails_no_nils (filterv #(not= % []) (mapv extract_mail3 user_followers_desrciptions))]
-     (filterv #(not= % "badaddress" ) (mapv check_first_last (mapv #(% 0) mails_no_nils)))))
+(defn getFirst [stringVector]
+  (if (not= stringVector []) (stringVector 0)))
 
 
-(defn add_emails
-  "extracts emails and add them to email.txt file, discards duplicates"
-  [useridorname]
-  (let [userid (if (string? useridorname) (get_user_id useridorname) useridorname)
-        extracted_emails (reduce conj (hash-set) (extract_emails userid))
-        _ (println (str "extracted " (count extracted_emails) " email addresses"))
-        already_extracted_emails (reduce conj (hash-set) (read-lines emailsfile))
-        emails_not_yet_added (filter #(not (contains? already_extracted_emails (str %))) extracted_emails)
-        _ (println (str "emails already extracted: " (count already_extracted_emails) ", emails to be added: " (count emails_not_yet_added)))]
-    (doall (map #(spit emailsfile (str % "\n") :append true) (sort emails_not_yet_added)))))
+(defn extractEmailFromDescription [description]
+ (if (not= description nil)
+(let [ext (extract_mail3 description)]
+  (if (not= ext [])
+    (let [extracted (check_first_last (get ext 0))
+          cleared (if (and (not= extracted nil) (not= (subs extracted 0 1) "@")) extracted nil)]
+      cleared)))))
+
+
+;; (defn extract_emails [userid]
+;;   "extract all available email addresses of user's followers"
+;;   (let [user_followers_desrciptions (followers_descriptions userid)
+;;         mails_no_nils (filterv #(not= % []) (mapv extract_mail3 user_followers_desrciptions))]
+;;      (filterv #(not= % "badaddress" ) (mapv check_first_last (mapv #(% 0) mails_no_nils)))))
+
+
+;; (defn add_emails
+;;   "extracts emails and add them to email.txt file, discards duplicates"
+;;   [useridorname]
+;;   (let [userid (if (string? useridorname) (get_user_id useridorname) useridorname)
+;;         extracted_emails (reduce conj (hash-set) (extract_emails userid))
+;;         _ (println (str "extracted " (count extracted_emails) " email addresses"))
+;;         already_extracted_emails (reduce conj (hash-set) (read-lines emailsfile))
+;;         emails_not_yet_added (filter #(not (contains? already_extracted_emails (str %))) extracted_emails)
+;;         _ (println (str "emails already extracted: " (count already_extracted_emails) ", emails to be added: " (count emails_not_yet_added)))]
+;;     (doall (map #(spit emailsfile (str % "\n") :append true) (sort emails_not_yet_added)))))
 
 
 

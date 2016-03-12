@@ -11,6 +11,9 @@
                  [cheshire "5.5.0"]
                  [org.clojure/data.json "0.2.6"]
                  [org.clojure/data.csv "0.1.3"]
+                 [org.clojure/java.jdbc "0.3.0"]
+                 [java-jdbc/dsl "0.1.0"]
+                 [mysql/mysql-connector-java "5.1.18"]
                  ]
 ;;                  ]
 ;;   :main sc.core
