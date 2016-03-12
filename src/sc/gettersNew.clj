@@ -219,7 +219,7 @@
 
 ;; (time (doall (map dloadAndSave_Followers  (range 3 4))))
 
-(time (doall (pmap (fn [x] (doall (pmap dloadAndSave_Followers x))) (partition-all 20 (range 4600 4600)))))
+;; (time (doall (pmap (fn [x] (doall (pmap dloadAndSave_Followers x))) (partition-all 20 (range 4600 5000)))))
 
 
 (defn get_user_id "returns user id from user name" [user_name]
@@ -238,4 +238,4 @@
        b (second ids)]
       (time (doall (pmap (fn [x] (doall (pmap dloadAndSave_Followers x))) (partition-all 20 (range a b))))))))
 
-;; (-main)
+(-main)
