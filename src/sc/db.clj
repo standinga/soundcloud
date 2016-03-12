@@ -1,22 +1,13 @@
 (ns sc.db
-(:import [java.sql SQLException])
-  (:require [clojure.java.jdbc :as jdbc]
-         ))
-
- (def db {:classname "com.mysql.jdbc.Driver"
-          :subprotocol "mysql"
-          :subname "//localhost:3306/soundcloud"
-          :user "root"
-          :password "pass"})
+  (:import [java.sql SQLException])
+  (:require [clojure.java.jdbc :as jdbc]))
 
 
-(defn insertIgnoreGraph
-  "bulk insert of values [user follows] in vector xs into graph table, ignores duplicates"
-  [xs]
-  (let [strings (map #(str "(" (get % 0) "," (get % 1) ")") xs)
-        stringCall (reduce #(str %1 "," %2) strings)
-        query (str "INSERT IGNORE INTO `graph` (`user`, `follows`) VALUES " stringCall ";")]
-    (jdbc/execute! db [query])))
+(def db {:classname "com.mysql.jdbc.Driver"
+         :subprotocol "mysql"
+         :subname "//localhost:3306/soundcloud"
+         :user "root"
+         :password "pass"})
 
 
 (defn retryExecute [query n error]
@@ -31,6 +22,18 @@
         (recur (inc i))))))
 
 
+(defn insertIgnoreGraph
+  "bulk insert of values [user follows] in vector xs into graph table, ignores duplicates"
+  [xs]
+  (let [strings (map #(str "(" (get % 0) "," (get % 1) ")") xs)
+        stringCall (reduce #(str %1 "," %2) strings)
+        query (str "INSERT IGNORE INTO `graph` (`user`, `follows`) VALUES " stringCall ";")]
+    (try
+      (jdbc/execute! db [query])
+      (catch java.sql.SQLException e
+        (retryExecute query 5 (.getErrorCode e))))))
+
+
 (defn insertIgnoreUsers
   "bulk insert of values
   [id url fake name country email followers followings tracks likes reposts desl plan]
@@ -41,12 +44,11 @@
                            "," (get % 10) "," (get % 11)  ",'" (get % 12) "')") xs)
         stringCall (reduce #(str %1 "," %2) strings)
         query (str "INSERT IGNORE INTO `users` (`id`, `url`, `fake`, `name`, `country`, `email`, `followers`, `followings`, `tracks`, `likes`, `reposts`, `desl`, `plan`) VALUES " stringCall ";")]
-    (try (jdbc/execute! db [query])
+    (try
+      (jdbc/execute! db [query])
       (catch java.sql.SQLException e
         (retryExecute query 5 (.getErrorCode e))))))
 
-
-;; (insertIgnoreUsers usr)
 
 (defn insertSavedFollower "insert user whose followers are already saved" [id]
   (let [query (str "INSERT IGNORE INTO `savedfollowers` (`id`) VALUES (" id ");")]
@@ -62,17 +64,14 @@
     (jdbc/execute! db [query])))
 
 
-
 (defn notSavedFollowings [id]
-  (empty? (jdbc/query db [(str "SELECT * FROM `savedfollowings` WHERE `id` = '" id "';")])))
+  (empty? (jdbc/query db [(str "SELECT * FROM `e404` JOIN `savedfollowings` where e404.id="
+                               id " or savedfollowings.id=" id ";")])))
 
 (defn notSavedFollowers [id]
   (empty? (jdbc/query db [(str "SELECT * FROM `e404` JOIN `savedfollowers` where e404.id="
                                id " or savedfollowers.id=" id ";")])))
 
-(str "SELECT * FROM `e404` JOIN `savedfollowers` where e404.id="
-                               3 " or savedfollowers.id=" 3 ";")
-
 (insert404 7)
 
-(notSavedFollowers 34567)
+(notSavedFollowers 1)
